@@ -43,8 +43,39 @@ const serverlessConfiguration: AWS = {
       define: { 'require.resolve': undefined },
       platform: 'node',
       concurrency: 10,
-    },
+    }
   },
+  resources: {
+    Resources: {
+      CognitoUserPoolCognitoUserPool: {
+        Type: "AWS::Cognito::UserPool",
+        Properties: {
+          UserPoolName: function() {
+            return `${this.service}-${this.provider.stage}`
+          },
+          Policies: {
+            PasswordPolicy: {
+              MinimumLength: 8
+            }
+          },
+          UsernameAttributes: "email",
+          AutoVerifiedAttributes: "email"
+        }
+      },
+      CognitoUserPoolClient: {
+        Type: "AWS::Cognito::UserPoolClient",
+        Properties: {
+          ClientName: function() {
+            return `${this.service}-${this.provider.stage}`
+          },
+          UserPoolId: {
+            Ref: "CognitoUserPoolCognitoUserPool"
+          },
+          GenerateSecret: false
+        }
+      }
+    }
+  }
 };
 
 module.exports = serverlessConfiguration;
